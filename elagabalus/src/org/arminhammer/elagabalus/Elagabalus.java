@@ -1,7 +1,7 @@
 /**
  * 
  */
-package elagabalus;
+package org.arminhammer.elagabalus;
 
 /**
  * @author armin
