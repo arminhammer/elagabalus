@@ -4,6 +4,9 @@
 package org.arminhammer.elagabalus;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import com.esotericsoftware.minlog.Log;
 
 /**
  * @author armin
@@ -52,7 +55,7 @@ public class Elagabalus {
          * it.
          */
 		File testFile = new File(this.filePath);
-        if (this.filePath.exists()) {
+        if (testFile.exists()) {
             try {
                 this.verifyFile();
             } catch (FileNotVerifiableException e) {
@@ -92,5 +95,8 @@ public class Elagabalus {
         queueThread = new QueueProcessor(this);
     }
 	}
-	
+
+	private void verifyFile() {
+		
+	}
 }
