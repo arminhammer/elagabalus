@@ -34,7 +34,11 @@ public class Elagabalus {
 		this.autoPersist = false;
 		this.fileSize = 100;
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
-		this.state = this.getState();
+		State state = this.readState();
+		if(state == null) {
+			state = new State();
+		}
+		this.state = state;
 	}
 
 	public Elagabalus(String filePath, long fileSize) {
@@ -44,6 +48,11 @@ public class Elagabalus {
 		}
 		this.fileSize = fileSize;
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
+		State state = this.readState();
+		if(state == null) {
+			state = new State();
+		}
+		this.state = state;
 	}
 	
 	public int[] write(String id, byte[] data) {
@@ -118,8 +127,9 @@ public class Elagabalus {
         return outputFileChannel;
     }
 	
-	private State getState() {
+	private State readState() {
 		// TODO Auto-generated method stub
+		State state = null;
 		try {
 			ByteBuffer buffer = ByteBuffer.allocateDirect(16);
 			this.fileChannel.position(0);
@@ -132,7 +142,7 @@ public class Elagabalus {
 			this.fileChannel.read(buffer);
 			Input input = new Input(new ByteBufferInputStream(buffer));
 			Kryo kryo = new Kryo();
-			State state = kryo.readObject(input, State.class);
+			state = kryo.readObject(input, State.class);
 			input.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
