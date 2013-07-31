@@ -137,7 +137,7 @@ public class Elagabalus {
 			long beginning = buffer.getLong(0);
 			long end = buffer.getLong(9);
 			int length =  safeLongToInt(end - beginning);
-			buffer = ByteBuffer.allocate(length);
+			buffer = ByteBuffer.allocateDirect(length);
 			this.fileChannel.position(beginning);
 			this.fileChannel.read(buffer);
 			Input input = new Input(new ByteBufferInputStream(buffer));
