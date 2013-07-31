@@ -11,7 +11,7 @@ import java.io.File;
  */
 public class Elagabalus {
 
-	private final static long MAX_FILE_SIZE = 4294967296;
+	private final static long MAX_FILE_SIZE = Long.MAX_VALUE;
 	
 	private boolean autoPersist;
 	private long fileSize;
@@ -25,6 +25,9 @@ public class Elagabalus {
 	}
 	
 	public Elagabalus(String filePath, long fileSize) {
+		if(fileSize > MAX_FILE_SIZE) {
+			
+		}
 		this.fileSize = fileSize;
 		this.filePath = filePath;
 		this.initializeFile();
