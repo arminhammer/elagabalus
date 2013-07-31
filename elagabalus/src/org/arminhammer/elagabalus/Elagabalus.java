@@ -63,6 +63,10 @@ public class Elagabalus {
 		return null;
 	}
 	
+	public boolean remove(String id) {
+		
+	}
+	
 	public void save() {
 		
 	}
