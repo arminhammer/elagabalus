@@ -4,10 +4,16 @@
 package org.arminhammer.elagabalus;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.ByteBufferInputStream;
+import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.minlog.Log;
 
 /**
@@ -20,14 +26,14 @@ public class Elagabalus {
 	
 	private boolean autoPersist;
 	private long fileSize;
-	private File file;
+	//private File file;
 	private FileChannel fileChannel = null;
 	private State state;
 	
 	public Elagabalus(String filePath) {		
 		this.autoPersist = false;
 		this.fileSize = 100;
-		this.file = this.initializeFile(filePath);
+		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		this.state = this.getState();
 	}
 
@@ -37,7 +43,7 @@ public class Elagabalus {
 			System.exit(0);
 		}
 		this.fileSize = fileSize;
-		this.file = this.initializeFile(filePath);
+		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 	}
 	
 	public int[] write(String id, byte[] data) {
@@ -56,7 +62,7 @@ public class Elagabalus {
 		
 	}
 	
-	private File initializeFile(String filePath) {
+	private FileChannel initializeFile(String filePath, long fileSize) {
 		/* Check to see if the file exists.  Verify that it is a valid
          * PojoStick object store, and then do some further validations
          * to make sure that it is useable.  If it doesn't exist, create
@@ -99,15 +105,56 @@ public class Elagabalus {
                 Log.error("Exception " + ex);
             }
         }
-        return newFile;
+        RandomAccessFile randomAccessFile = null;
+        try {
+            randomAccessFile = new RandomAccessFile(newFile, "rw");
+            randomAccessFile.setLength(fileSize);
+        } catch (IOException e1) {
+            Log.error("Unable to create random access file.");
+        }
+
+        FileChannel outputFileChannel = null;
+        outputFileChannel = randomAccessFile.getChannel();
+        return outputFileChannel;
     }
 	
 	private State getState() {
 		// TODO Auto-generated method stub
-		return null;
+		try {
+			ByteBuffer buffer = ByteBuffer.allocateDirect(16);
+			this.fileChannel.position(0);
+			this.fileChannel.read(buffer);
+			long beginning = buffer.getLong(0);
+			long end = buffer.getLong(9);
+			int length =  safeLongToInt(end - beginning);
+			buffer = ByteBuffer.allocate(length);
+			this.fileChannel.position(beginning);
+			this.fileChannel.read(buffer);
+			Input input = new Input(new ByteBufferInputStream(buffer));
+			Kryo kryo = new Kryo();
+			State state = kryo.readObject(input, State.class);
+			input.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			Log.warn("Unable to extract state class from file.");	
+		}
+		return state;
 	}
 
+	private void writeState() {
+		
+	}
+	
 	private void verifyFile() {
 		
+	}
+	
+	public static int safeLongToInt(long l) {
+	    if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+	        throw new IllegalArgumentException
+	            (l + " cannot be cast to int without changing its value.");
+	    }
+	    return (int) l;
 	}
 }
