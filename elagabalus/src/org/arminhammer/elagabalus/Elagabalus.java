@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.UUID;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.ByteBufferInputStream;
@@ -64,7 +65,7 @@ public class Elagabalus {
 	}
 	
 	public boolean remove(String id) {
-		
+		return false;
 	}
 	
 	public void save() {
@@ -164,11 +165,15 @@ public class Elagabalus {
 		
 	}
 	
-	public static int safeLongToInt(long l) {
+	private static int safeLongToInt(long l) {
 	    if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
 	        throw new IllegalArgumentException
 	            (l + " cannot be cast to int without changing its value.");
 	    }
 	    return (int) l;
+	}
+	
+	private String getUUID() {
+		return UUID.randomUUID().toString();
 	}
 }
