@@ -27,49 +27,49 @@ public class ElagabalusTest {
 	/**
 	 * @throws java.lang.Exception
 	 */
-	// @Before
+	@Before
 	public void setUp() throws Exception {
-		min = 5;
+		min = 1;
 		max = 100000;
 	}
-
-	private static ArrayDequeue<String> generateRandStrings(int count) {
-		ArrayDequeue<String> queue = new ArrayDequeue<String>();
-		for (int i = 0; i < count; i++) {
-			int randomNum = rand.nextInt(max - min + 1) + min;
-			String string = RandomStringUtils.random(randomNum);
-			queue.push(string);
-		}
-		return queue;
-	}
-
-	private static ArrayDequeue<String> generateIDs(int count) {
-		ArrayDequeue<String> queue = new ArrayDequeue<String>();
-		for (int i = 0; i < count; i++) {
-			int randomNum = rand.nextInt(max - min + 1) + min;
-			String uuid = UUID.randomUUID().toString();
-			queue.push(uuid);
-		}
-		return queue;
-	}
-
-	private static HashMap<String, String> getStringHash(int count) {
-		HashMap<String, String> hash = new HashMap<String, String>();
-		ArrayDequeue<String> ids = generateIDs(count);
-		ArrayDequeue<String> strings = generateRandStrings(count);
-		for (int i = 0; i < count; i++) {
-			hash.put(ids.pop(), strings.pop());
-		}
-		return hash;
-	}
-
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
-	// @After
+	@After
 	public void tearDown() throws Exception {
 	}
 
+	@Test
+	public void testTenStrings() {
+		System.out.println("Testing with 10 strings");
+		HashMap<String, String> hash = getStringHash(10);
+		Set<String> keys = hash.keySet();
+		String[] keyArray = keys.toArray();
+		Elagabalus store = new Elagabalus("/home/armin/test/test.ela");
+		long startTime = System.currentTimeMillis();
+		for (int i = 0; i < keyArray.length; i++) {
+			String key = keyArray[i];
+			String value = hash.get(key);
+			store.write(key, value.getBytes());
+		}
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		System.out.println("Time to add elements: " + elapsedTime);
+		
+		Elagabalus store = new Elagabalus("/home/armin/test/test.ela");
+		startTime = System.currentTimeMillis();
+		HashMap<String, String> readHash = new HashMap<String, String>();
+		for (int i = 0; i < keyArray.length; i++) {
+			String key = keyArray[i];
+			String value = store.read(key).toString();
+			readHash.put(key, value);
+		}
+		stopTime = System.currentTimeMillis();
+		elapsedTime = stopTime - startTime;
+		System.out.println("Time to read elements: " + elapsedTime);
+		assertEqual(hash, readHash);
+	}
 	/**
 	 * Test method for
 	 * {@link org.arminhammer.elagabalus.Elagabalus#Elagabalus(java.lang.String)}
@@ -121,7 +121,7 @@ public class ElagabalusTest {
 	/**
 	 * Test method for {@link org.arminhammer.elagabalus.Elagabalus#save()}.
 	 */
-	// @Test
+	@Test
 	public final void testSave() {
 		fail("Not yet implemented"); // TODO
 	}
@@ -129,7 +129,7 @@ public class ElagabalusTest {
 	/**
 	 * Test method for {@link org.arminhammer.elagabalus.Elagabalus#close()}.
 	 */
-	// @Test
+	@Test
 	public final void testClose() {
 		fail("Not yet implemented"); // TODO
 	}
@@ -138,27 +138,39 @@ public class ElagabalusTest {
 	 * Test method for
 	 * {@link org.arminhammer.elagabalus.Elagabalus#safeLongToInt(long)}.
 	 */
-	// @Test
+	@Test
 	public final void testSafeLongToInt() {
 		fail("Not yet implemented"); // TODO
 	}
 
-	@Test
-	public final void testTenStrings() {
-		System.out.println("Testing with 10 strings");
-		HashMap<String, String> hash = getStringHash(10);
-		Set<String> keys = hash.keySet();
-		String[] keyArray = keys.toArray();
-		Elagabalus store = new Elagabalus("/home/armin/test/test.ela");
-		long startTime = System.currentTimeMillis();
-		for (int i = 0; i < keyArray.length; i++) {
-			String key = keyArray[i];
-			String value = hash.get(key);
-			store.write(key, value.getBytes());
+	private static ArrayDequeue<String> generateRandStrings(int count) {
+		ArrayDequeue<String> queue = new ArrayDequeue<String>();
+		for (int i = 0; i < count; i++) {
+			int randomNum = rand.nextInt(max - min + 1) + min;
+			String string = RandomStringUtils.random(randomNum);
+			queue.push(string);
 		}
-		long stopTime = System.currentTimeMillis();
-		long elapsedTime = stopTime - startTime;
-		System.out.println("Time to add elements: " + elapsedTime);
+		return queue;
+	}
+
+	private static ArrayDequeue<String> generateIDs(int count) {
+		ArrayDequeue<String> queue = new ArrayDequeue<String>();
+		for (int i = 0; i < count; i++) {
+			int randomNum = rand.nextInt(max - min + 1) + min;
+			String uuid = UUID.randomUUID().toString();
+			queue.push(uuid);
+		}
+		return queue;
+	}
+
+	private static HashMap<String, String> getStringHash(int count) {
+		HashMap<String, String> hash = new HashMap<String, String>();
+		ArrayDequeue<String> ids = generateIDs(count);
+		ArrayDequeue<String> strings = generateRandStrings(count);
+		for (int i = 0; i < count; i++) {
+			hash.put(ids.pop(), strings.pop());
+		}
+		return hash;
 	}
 
 }
