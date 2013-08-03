@@ -5,6 +5,7 @@ package org.arminhammer.elagabalus.test;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
@@ -45,11 +46,11 @@ public class ElagabalusTest {
 	}
 
 	@Test
-	public void testTenStrings() {
+	public void testTenStrings() throws IOException {
 		System.out.println("Testing with 10 strings");
 		HashMap<String, String> originalHash = getStringHash(10, min, max);
 		Set<String> keys = originalHash.keySet();
-		String[] keyArray = (String[])keys.toArray();
+		String[] keyArray = (String[]) keys.toArray(new String[keys.size()]);
 		Elagabalus store = new Elagabalus("/home/armin/test/test.ela");
 		long startTime = System.currentTimeMillis();
 		for (int i = 0; i < keyArray.length; i++) {

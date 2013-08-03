@@ -3,6 +3,7 @@
  */
 package org.arminhammer.elagabalus;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -14,8 +15,11 @@ import java.util.UUID;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.ByteBufferInputStream;
+import com.esotericsoftware.kryo.io.ByteBufferOutputStream;
 import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.minlog.Log;
+//import com.esotericsoftware.kryo.ObjectBuffer;
 
 /**
  * @author armin
@@ -30,16 +34,17 @@ public class Elagabalus {
 	//private File file;
 	private FileChannel fileChannel = null;
 	private State state;
+	//private Kryo kryo;
 	
-	public Elagabalus(String filePath) {		
+	public Elagabalus(String filePath) throws IOException {		
 		this.autoPersist = false;
 		this.fileSize = 100;
+		//this.kryo = new Kryo();
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
-		State state = this.readState();
-		if(state == null) {
-			state = new State();
+		if(this.state == null) {
+			this.state = new State();
+			this.writeState();
 		}
-		this.state = state;
 	}
 
 	public Elagabalus(String filePath, long fileSize) {
@@ -49,15 +54,13 @@ public class Elagabalus {
 		}
 		this.fileSize = fileSize;
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
-		State state = this.readState();
-		if(state == null) {
-			state = new State();
+		if(this.state == null) {
+			this.state = new State();
 		}
-		this.state = state;
 	}
 	
-	public int[] write(String id, byte[] data) {
-		return null;
+	public void write(String id, byte[] data) {
+		writeBytes(id, data);
 	}
 	
 	public byte[] read(String id) {
@@ -74,6 +77,14 @@ public class Elagabalus {
 	
 	public void close() {
 		
+	}
+	
+	private long[] writeBytes(String id, byte[] data) {
+		return null;
+	}
+	
+	private long[] writeByteBuffer(String id, ByteBuffer data) {
+		return null;
 	}
 	
 	private FileChannel initializeFile(String filePath, long fileSize) {
@@ -134,6 +145,7 @@ public class Elagabalus {
 	
 	private State readState() {
 		// TODO Auto-generated method stub
+		Kryo kryo = new Kryo();
 		State state = null;
 		try {
 			ByteBuffer buffer = ByteBuffer.allocateDirect(16);
@@ -142,11 +154,10 @@ public class Elagabalus {
 			long beginning = buffer.getLong(0);
 			long end = buffer.getLong(9);
 			int length =  safeLongToInt(end - beginning);
-			buffer = ByteBuffer.allocateDirect(length);
+			ByteBuffer stateBuffer = ByteBuffer.allocateDirect(length);
 			this.fileChannel.position(beginning);
-			this.fileChannel.read(buffer);
-			Input input = new Input(new ByteBufferInputStream(buffer));
-			Kryo kryo = new Kryo();
+			this.fileChannel.read(stateBuffer);
+			Input input = new Input(new ByteBufferInputStream(stateBuffer));
 			state = kryo.readObject(input, State.class);
 			input.close();
 		} catch (IOException e) {
@@ -157,8 +168,25 @@ public class Elagabalus {
 		return state;
 	}
 
-	private void writeState() {
-		
+	private void writeState() throws IOException {
+		Kryo kryo = new Kryo();
+		//ByteBuffer stateBuffer = ByteBuffer.allocate(capacity)
+		//ByteBufferOutputStream outputStream =  new ByteBufferOutputStream();
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		//ObjectBuffer ob = new ObjectBuffer(kryo);
+		Output output = new Output(outputStream);
+		//Output output = new ByteBufferOutput(outputStream);
+		kryo.writeClassAndObject(output, this.state);
+		System.out.println("Buffer " + output.getBuffer().toString());
+		output.close();
+		//ByteBuffer buffer = outputStream.getByteBuffer();
+		byte[] buffer = outputStream.toByteArray();
+		long[] pos = this.writeBytes(this.state.getId(), buffer);
+		ByteBuffer positions = ByteBuffer.allocateDirect(16);
+		positions.putLong(0, pos[0]);
+		positions.putLong(9, pos[1]);
+		this.fileChannel.position(0);
+		this.fileChannel.write(positions);
 	}
 	
 	private void verifyFile() {
@@ -173,7 +201,4 @@ public class Elagabalus {
 	    return (int) l;
 	}
 	
-	private String getUUID() {
-		return UUID.randomUUID().toString();
-	}
 }
