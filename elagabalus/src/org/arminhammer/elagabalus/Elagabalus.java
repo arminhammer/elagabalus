@@ -42,7 +42,7 @@ public class Elagabalus {
 		//this.kryo = new Kryo();
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		if(this.state == null) {
-			this.state = new State();
+			this.state = new State(100);
 			this.writeState();
 		}
 	}
@@ -55,7 +55,7 @@ public class Elagabalus {
 		this.fileSize = fileSize;
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		if(this.state == null) {
-			this.state = new State();
+			this.state = new State(100);
 		}
 	}
 	
