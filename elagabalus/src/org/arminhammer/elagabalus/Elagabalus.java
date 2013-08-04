@@ -38,11 +38,11 @@ public class Elagabalus {
 	
 	public Elagabalus(String filePath) throws IOException {		
 		this.autoPersist = false;
-		this.fileSize = 100;
+		this.fileSize = 1000;
 		//this.kryo = new Kryo();
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		if(this.state == null) {
-			this.state = new State(100);
+			this.state = new State(1000);
 			this.writeState();
 		}
 	}
@@ -55,7 +55,7 @@ public class Elagabalus {
 		this.fileSize = fileSize;
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		if(this.state == null) {
-			this.state = new State(100);
+			this.state = new State(fileSize);
 		}
 	}
 	
@@ -181,12 +181,29 @@ public class Elagabalus {
 		output.close();
 		//ByteBuffer buffer = outputStream.getByteBuffer();
 		byte[] buffer = outputStream.toByteArray();
-		long[] pos = this.writeBytes(this.state.getId(), buffer);
-		ByteBuffer positions = ByteBuffer.allocateDirect(16);
-		positions.putLong(0, pos[0]);
-		positions.putLong(9, pos[1]);
+		//long[] pos = this.writeBytes(this.state.getId(), buffer);
+		long stateSize = (long)buffer.length;
+		System.out.println("State is " + stateSize);
+		long stateEnd = 16 + stateSize;
+		//ByteBuffer writeBuffer = ByteBuffer.allocate(16 + buffer.length);
+		byte[] beginByte = ByteBuffer.allocate(8).putLong(0).array();
+		byte[] endByte = ByteBuffer.allocate(8).putLong(stateEnd).array();
+		ByteArrayOutputStream writeStream = new ByteArrayOutputStream();
+		writeStream.write(beginByte);
+		writeStream.write(endByte);
+		writeStream.write(buffer);
+		byte[] toWrite = writeStream.toByteArray();
+		ByteBuffer writeBuffer = ByteBuffer.wrap(toWrite);
+		System.out.println("Writing...");
 		this.fileChannel.position(0);
-		this.fileChannel.write(positions);
+		this.fileChannel.write(writeBuffer);
+		//this.fileChannel.close();
+		System.out.println("Writing state finished!");
+		//ByteBuffer positions = ByteBuffer.allocateDirect(16);
+		//positions.putLong(0, pos[0]);
+		//positions.putLong(9, pos[1]);
+		//this.fileChannel.position(0);
+		//this.fileChannel.write(positions);
 	}
 	
 	private void verifyFile() {
