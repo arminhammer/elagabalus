@@ -5,6 +5,7 @@ package org.arminhammer.elagabalus.test;
 
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
 
 /**
  * @author armin
@@ -60,8 +62,8 @@ public class ElagabalusTest {
 		for (int i = 0; i < keyArray.length; i++) {
 			String key = keyArray[i];
 			String value = originalHash.get(key);
-			byte[] val = kryo.writeClassAndObject(arg0, arg1);
-			store.write(key, value.getBytes());
+			byte[] val = store.objectToBytes(value);
+			store.write(key, val);
 			System.out.println("Writing key: " + key + " value: " + value);
 		}
 		long stopTime = System.currentTimeMillis();
@@ -73,9 +75,11 @@ public class ElagabalusTest {
 		for (int i = 0; i < keyArray.length; i++) {
 			String key = keyArray[i];
 			System.out.println("Reading key " + key);
-			String value = store.read(key).toString();
-			readHash.put(key, value);
-			System.out.println("Reading key: " + key + " value: " + value);
+			byte[] rValue = store.read(key);
+			Input input = new Input(new ByteArrayInputStream(rValue));
+			String rVal = (String)kryo.readClassAndObject(input);
+			readHash.put(key, rVal);
+			System.out.println("Reading key: " + key + " value: " + rVal);
 		}
 		stopTime = System.currentTimeMillis();
 		elapsedTime = stopTime - startTime;

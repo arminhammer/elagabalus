@@ -98,6 +98,16 @@ public class Elagabalus {
 		
 	}
 	
+	public byte[] objectToBytes(Object object) {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		Output output = new Output(outputStream);
+		this.kryo.writeClassAndObject(output, this.state);
+		System.out.println("Buffer " + output.getBuffer().toString());
+		output.close();
+		byte[] buffer = outputStream.toByteArray();
+		return buffer;
+	}
+	
 	//private long[] writeBytes(String id, byte[] data) {
 	//return null;
 	//}
