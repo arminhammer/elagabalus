@@ -34,15 +34,15 @@ public class Elagabalus {
 	//private File file;
 	private FileChannel fileChannel = null;
 	private State state;
-	//private Kryo kryo;
+	private Kryo kryo;
 	
 	public Elagabalus(String filePath) throws IOException {		
 		this.autoPersist = false;
-		this.fileSize = 1000;
-		//this.kryo = new Kryo();
+		this.fileSize = 1024;
+		this.kryo = new Kryo();
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		if(this.state == null) {
-			this.state = new State(1000);
+			this.state = new State(1024);
 			this.writeState();
 		}
 	}
@@ -72,8 +72,13 @@ public class Elagabalus {
 		writeByteBuffer(ByteBuffer.wrap(data), beginByte, endByte);
 	}
 	
-	public byte[] read(String id) {
-		return null;
+	public byte[] read(String id) throws IOException {
+		Entry entry = this.state.getEntries().get(id);
+		int bufferSize = safeLongToInt((entry.getEndPos() - entry.getBeginPos()));
+		ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+		this.fileChannel.position(entry.getBeginPos());
+		this.fileChannel.read(buffer);
+		return buffer.array();
 	}
 	
 	public boolean remove(String id) {
@@ -150,7 +155,7 @@ public class Elagabalus {
 	
 	private State readState() {
 		// TODO Auto-generated method stub
-		Kryo kryo = new Kryo();
+		//Kryo kryo = new Kryo();
 		State state = null;
 		try {
 			ByteBuffer buffer = ByteBuffer.allocateDirect(16);
@@ -163,8 +168,9 @@ public class Elagabalus {
 			this.fileChannel.position(beginning);
 			this.fileChannel.read(stateBuffer);
 			Input input = new Input(new ByteBufferInputStream(stateBuffer));
-			state = kryo.readObject(input, State.class);
+			state = this.kryo.readObject(input, State.class);
 			input.close();
+			return state;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

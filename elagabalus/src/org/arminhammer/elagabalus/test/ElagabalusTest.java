@@ -20,6 +20,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.esotericsoftware.kryo.Kryo;
+
 /**
  * @author armin
  * 
@@ -35,7 +37,7 @@ public class ElagabalusTest {
 	@Before
 	public void setUp() throws Exception {
 		min = 1;
-		max = 100000;
+		max = 100;
 	}
 	
 	/**
@@ -47,8 +49,10 @@ public class ElagabalusTest {
 
 	@Test
 	public void testTenStrings() throws IOException {
+		int stringNum = 2;
+		Kryo kryo = new Kryo();
 		System.out.println("Testing with 10 strings");
-		HashMap<String, String> originalHash = getStringHash(10, min, max);
+		HashMap<String, String> originalHash = getStringHash(stringNum, min, max);
 		Set<String> keys = originalHash.keySet();
 		String[] keyArray = (String[]) keys.toArray(new String[keys.size()]);
 		Elagabalus store = new Elagabalus("/home/armin/test/test.ela");
@@ -56,18 +60,22 @@ public class ElagabalusTest {
 		for (int i = 0; i < keyArray.length; i++) {
 			String key = keyArray[i];
 			String value = originalHash.get(key);
+			byte[] val = kryo.writeClassAndObject(arg0, arg1);
 			store.write(key, value.getBytes());
+			System.out.println("Writing key: " + key + " value: " + value);
 		}
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
 		System.out.println("Time to add elements: " + elapsedTime);
-		
+		System.out.println("Starting the read...");
 		startTime = System.currentTimeMillis();
 		HashMap<String, String> readHash = new HashMap<String, String>();
 		for (int i = 0; i < keyArray.length; i++) {
 			String key = keyArray[i];
+			System.out.println("Reading key " + key);
 			String value = store.read(key).toString();
 			readHash.put(key, value);
+			System.out.println("Reading key: " + key + " value: " + value);
 		}
 		stopTime = System.currentTimeMillis();
 		elapsedTime = stopTime - startTime;
