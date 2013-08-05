@@ -59,8 +59,17 @@ public class Elagabalus {
 		}
 	}
 	
-	public void write(String id, byte[] data) {
-		writeBytes(id, data);
+	public void write(String id, byte[] data) throws IOException {
+		if(this.state.getEntries().containsKey(id)) {
+			System.out.println("The key already exists in the state!");
+			return;
+		}
+		long beginByte = this.state.getEntryEnd() + 1;
+		long endByte = beginByte + (long)data.length;
+		Entry newEntry = new Entry(beginByte, endByte, id);
+		this.state.getEntries().put(id, newEntry);
+		this.state.setEntryEnd(beginByte);
+		writeByteBuffer(ByteBuffer.wrap(data), beginByte, endByte);
 	}
 	
 	public byte[] read(String id) {
@@ -71,7 +80,12 @@ public class Elagabalus {
 		return false;
 	}
 	
-	public void save() {
+	public void save() throws IOException {
+		this.writeState();
+		this.flush();
+	}
+	
+	public void flush() {
 		
 	}
 	
@@ -79,12 +93,13 @@ public class Elagabalus {
 		
 	}
 	
-	private long[] writeBytes(String id, byte[] data) {
-		return null;
-	}
+	//private long[] writeBytes(String id, byte[] data) {
+	//return null;
+	//}
 	
-	private long[] writeByteBuffer(String id, ByteBuffer data) {
-		return null;
+	private void writeByteBuffer(ByteBuffer data, long begin, long end) throws IOException {
+		this.fileChannel.position(begin);
+		this.fileChannel.write(data);
 	}
 	
 	private FileChannel initializeFile(String filePath, long fileSize) {
@@ -104,7 +119,7 @@ public class Elagabalus {
                 System.exit(0);
             }
             try {
-                this.verifyFile();
+                boolean verified = this.verifyFile();
             } catch (Exception e) {
             	Log.error("File " + e + " exists, but was not verifiable as a valid Elagalus file.");
             	System.exit(0);
@@ -116,16 +131,6 @@ public class Elagabalus {
                 if (!newFile.getParentFile().exists()) {
                     newFile.getParentFile().mkdirs();
                 }
-                /*
-                FileWriter writer;
-                try {
-                    writer = new FileWriter(pojofile, true);
-                    writer.write(queueSeparator + "\n");
-                    writer.close();
-                } catch (IOException ex) {
-                    Log.error("IOError: " + ex);
-                }
-                */
             } catch (Exception ex) {
                 Log.error("Exception " + ex);
             }
@@ -206,8 +211,9 @@ public class Elagabalus {
 		//this.fileChannel.write(positions);
 	}
 	
-	private void verifyFile() {
-		
+	private boolean verifyFile() {
+		State state = this.readState();
+		return true;
 	}
 	
 	private static int safeLongToInt(long l) {
