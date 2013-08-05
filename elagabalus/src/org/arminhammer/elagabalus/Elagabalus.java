@@ -38,11 +38,11 @@ public class Elagabalus {
 	
 	public Elagabalus(String filePath) throws IOException {		
 		this.autoPersist = false;
-		this.fileSize = 1024;
+		this.fileSize = 512;
 		this.kryo = new Kryo();
 		this.fileChannel = this.initializeFile(filePath, this.fileSize);
 		if(this.state == null) {
-			this.state = new State(1024);
+			this.state = new State(512);
 			this.writeState();
 		}
 	}
@@ -68,7 +68,7 @@ public class Elagabalus {
 		long endByte = beginByte + (long)data.length;
 		Entry newEntry = new Entry(beginByte, endByte, id);
 		this.state.getEntries().put(id, newEntry);
-		this.state.setEntryEnd(beginByte);
+		this.state.setEntryEnd(endByte);
 		writeByteBuffer(ByteBuffer.wrap(data), beginByte, endByte);
 	}
 	
@@ -101,8 +101,8 @@ public class Elagabalus {
 	public byte[] objectToBytes(Object object) {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		Output output = new Output(outputStream);
-		this.kryo.writeClassAndObject(output, this.state);
-		System.out.println("Buffer " + output.getBuffer().toString());
+		this.kryo.writeClassAndObject(output, object);
+		//System.out.println("Buffer " + output.getBuffer().toString());
 		output.close();
 		byte[] buffer = outputStream.toByteArray();
 		return buffer;

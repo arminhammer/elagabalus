@@ -38,8 +38,8 @@ public class ElagabalusTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		min = 1;
-		max = 100;
+		min = 10;
+		max = 1000;
 	}
 	
 	/**
@@ -51,9 +51,9 @@ public class ElagabalusTest {
 
 	@Test
 	public void testTenStrings() throws IOException {
-		int stringNum = 2;
+		int stringNum = 200000;
 		Kryo kryo = new Kryo();
-		System.out.println("Testing with 10 strings");
+		System.out.println("Testing with " + stringNum + " strings");
 		HashMap<String, String> originalHash = getStringHash(stringNum, min, max);
 		Set<String> keys = originalHash.keySet();
 		String[] keyArray = (String[]) keys.toArray(new String[keys.size()]);
@@ -64,7 +64,7 @@ public class ElagabalusTest {
 			String value = originalHash.get(key);
 			byte[] val = store.objectToBytes(value);
 			store.write(key, val);
-			System.out.println("Writing key: " + key + " value: " + value);
+			//System.out.println("Writing key: " + key + " value: " + value);
 		}
 		long stopTime = System.currentTimeMillis();
 		long elapsedTime = stopTime - startTime;
@@ -74,18 +74,20 @@ public class ElagabalusTest {
 		HashMap<String, String> readHash = new HashMap<String, String>();
 		for (int i = 0; i < keyArray.length; i++) {
 			String key = keyArray[i];
-			System.out.println("Reading key " + key);
+			//System.out.println("Reading key " + key);
 			byte[] rValue = store.read(key);
 			Input input = new Input(new ByteArrayInputStream(rValue));
 			String rVal = (String)kryo.readClassAndObject(input);
 			readHash.put(key, rVal);
-			System.out.println("Reading key: " + key + " value: " + rVal);
+			//System.out.println("Reading key: " + key + " value: " + rVal);
 		}
 		stopTime = System.currentTimeMillis();
-		elapsedTime = stopTime - startTime;
-		System.out.println("Time to read elements: " + elapsedTime);
+		long elapsedTime1 = stopTime - startTime;
+		System.out.println("Time to add elements: " + elapsedTime);
+		System.out.println("Time to read elements: " + elapsedTime1);
 		assertTrue(originalHash.equals(readHash));
 	}
+	
 	/**
 	 * Test method for
 	 * {@link org.arminhammer.elagabalus.Elagabalus#Elagabalus(java.lang.String)}
